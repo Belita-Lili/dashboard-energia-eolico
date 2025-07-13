@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard de Análisis de Energía Eólica</title>
+  <link rel="stylesheet" href="estilo.css">
+  <link rel="shorcut icon" type="image/x-icon" href="logo.ico">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    :root {
+      --color1: #017c42;
+      --color2: #209559;
+      --color3: #3eae6f;
+      --color4: #5dc686;
+      --color5: #7bdf9c;
+      --blanco: #ffffff;
+      --gris-1: #ebebeb;
+      --gris-2: #d9d9d9;
+      --gris-4: #555655;
+      --gris-5: #231f20;
+    }
+    body {
+      background-color: var(--gris-1);
+      color: var(--gris-5);
+    }
+    .sidebar {
+      background-color: var(--color1);
+      color: var(--blanco);
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .card-custom {
+      background-color: var(--blanco);
+      border: 1px solid var(--gris-2);
+      border-radius: 10px;
+      padding: 10px;
+      margin: 0;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .card-custom:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .card-custom img {
+      width: 100%;
+      height: 250px;
+      object-fit: contain;
+      border-radius: 10px;
+    }
+    .card-custom iframe {
+      width: 100%;
+      height: 250px;
+      border: none;
+      border-radius: 10px;
+    }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-auto-rows: 300px;
+      gap: 0;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    .gallery img,
+    .gallery iframe {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 3px solid var(--color3);
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .gallery img:hover {
+      transform: scale(1.05);
+    }
+    footer {
+      background-color: var(--color2);
+      color: var(--blanco);
+      text-align: center;
+      padding: 10px;
+      margin-top: 20px;
+    }
+    .card-potencia {
+      background-color: var(--color3);
+      color: var(--blanco);
+    }
+    .card-generacion {
+      background-color: var(--color4);
+      color: var(--gris-5);
+    }
+    .card-factor {
+      background-color: var(--color5);
+      color: var(--gris-5);
+    }
+    .card-prediccion {
+      background-color: var(--color2);
+      color: var(--blanco);
+    }
+    .nav-tabs .nav-link.active {
+      background-color: var(--color3);
+      color: white;
+      border-color: var(--color3);
+    }
+    .nav-tabs .nav-link {
+      color: var(--color1);
+    }
+  </style>
+</head>
+<body>
+  <div class="row g-0">
+    <!-- FILTROS -->
+    <div class="col-md-2 sidebar">
+      <img src="graficas/wind-turbine.png" alt="Logo Energía Eólica" class="img-fluid mb-3" />
+      <h4>Dashboard de Energía Eólica</h4>
+      <hr style="border-color: var(--blanco)" />
+      <h5>Filtros</h5>
+      <div class="mb-3">
+        <label for="filtroAno" class="form-label">Año</label>
+        <select id="filtroAno" class="form-select">
+          <option value="">Todos</option>
+          <option value="2023">2023</option>
+          <option value="2024">2024</option>
+          <option value="2025">2025</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="filtroMes" class="form-label">Mes</label>
+        <select id="filtroMes" class="form-select">
+          <option value="">Todos</option>
+          <option value="1">Enero</option>
+          <option value="2">Febrero</option>
+          <option value="3">Marzo</option>
+          <option value="4">Abril</option>
+          <option value="5">Mayo</option>
+          <option value="6">Junio</option>
+          <option value="7">Julio</option>
+          <option value="8">Agosto</option>
+          <option value="9">Septiembre</option>
+          <option value="10">Octubre</option>
+          <option value="11">Noviembre</option>
+          <option value="12">Diciembre</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="filtroTurbina" class="form-label">Turbina</label>
+        <select id="filtroTurbina" class="form-select">
+          <option value="">Todas</option>
+          <option value="t1">Turbina 1</option>
+          <option value="t2">Turbina 2</option>
+          <option value="t3">Turbina 3</option>
+        </select>
+      </div>
+      <button class="btn btn-light mt-3 w-100" data-bs-toggle="modal" data-bs-target="#modalMetodologia">
+        Metodología y Ciencia de Datos
+      </button>
+      <button class="btn btn-primary mt-2" data-bs-toggle="modal" data-bs-target="#modalConclusiones">
+        Ver Conclusiones
+      </button>
+    </div>
+    
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="col-md-10 p-4">
+      <div class="row mb-4">
+        <!-- Caracteristicas de los aerogeneradores-->
+              <div class="modal fade" id="modalPotencia" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                  <div class="modal-content">
+                    <div class="modal-header" style="background-color: #017c42; color: white;">
+                      <h5 class="modal-title">📊 Especificaciones Técnicas - Parque Eólico</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="row">
+                        <div class="col-md-4">
+                          <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-success text-white">
+                              <h6 class="mb-0">Turbina Eólica Vestas V136</h6>
+                            </div>
+                            <div class="card-body">
+                              <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                  Potencia Nominal
+                                  <span class="badge bg-primary rounded-pill">3.2 MW</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                  Diámetro Rotor
+                                  <span class="badge bg-primary rounded-pill">136 m</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                  Velocidad Operativa
+                                  <span class="badge bg-primary rounded-pill">3-15 m/s</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                  Tipo Generador
+                                  <span class="badge bg-primary rounded-pill">DFIG</span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                          <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-success text-white">
+                              <h6 class="mb-0">Turbina Eólica Siemens SWT-3.0</h6>
+                            </div>
+                            <div class="card-body">
+                              <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                  Potencia Nominal
+                                  <span class="badge bg-primary rounded-pill">3.0 MW</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                  Diámetro Rotor
+                                  <span class="badge bg-primary rounded-pill">130 m</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                  Velocidad Operativa
+                                  <span class="badge bg-primary rounded-pill">3.5-14 m/s</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                  Tipo Generador
+                                  <span class="badge bg-primary rounded-pill">PMSG</span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                          <div class="card border-0 shadow-sm h-100">
+                            <div class="card-header bg-success text-white">
+                              <h6 class="mb-0">Turbina Eólica GE 2.5</h6>
+                            </div>
+                            <div class="card-body">
+                              <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                  Potencia Nominal
+                                  <span class="badge bg-primary rounded-pill">2.5 MW</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                  Diámetro Rotor
+                                  <span class="badge bg-primary rounded-pill">120 m</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                  Velocidad Operativa
+                                  <span class="badge bg-primary rounded-pill">3-25 m/s</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                  Tipo Generador
+                                  <span class="badge bg-primary rounded-pill">SCIG</span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="row mt-4">
+                        <div class="col-md-12">
+                          <div class="card border-success">
+                            <div class="card-header bg-light">
+                              <h6 class="mb-0">📌 Características Eléctricas Clave</h6>
+                            </div>
+                            <div class="card-body">
+                              <table class="table table-sm table-hover">
+                                <thead class="table-success">
+                                  <tr>
+                                    <th>Parámetro</th>
+                                    <th>Vestas V136</th>
+                                    <th>Siemens SWT-3.0</th>
+                                    <th>GE 2.5</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr>
+                                    <td>Tensión Operación</td>
+                                    <td>690 V</td>
+                                    <td>690 V</td>
+                                    <td>690 V</td>
+                                  </tr>
+                                  <tr>
+                                    <td>Frecuencia</td>
+                                    <td>50/60 Hz</td>
+                                    <td>50/60 Hz</td>
+                                    <td>50/60 Hz</td>
+                                  </tr>
+                                  <tr>
+                                    <td>Factor de Potencia</td>
+                                    <td>0.95 cap/ind</td>
+                                    <td>0.95 cap/ind</td>
+                                    <td>0.90 cap/ind</td>
+                                  </tr>
+                                  <tr>
+                                    <td>Eficiencia</td>
+                                    <td>98%</td>
+                                    <td>97%</td>
+                                    <td>96%</td>
+                                  </tr>
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-success" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modificar el KPI para que sea clickeable -->
+              <div class="col-md-3 card-custom card-potencia" data-bs-toggle="modal" data-bs-target="#modalPotencia">
+                Potencia Instalada<br><strong>2.5 MW</strong>
+                <small class="d-block mt-1">3 turbinas operativas</small>
+              </div>
+          
+        <div class="col-md-3 card-custom card-generacion">
+          Generación Anual<br><strong>5,870 MWh</strong>
+          <small class="d-block mt-1">+12% vs año anterior</small>
+        </div>
+        <div class="col-md-3 card-custom card-factor">
+          Factor de Capacidad<br><strong>34%</strong>
+          <small class="d-block mt-1">+2% vs año anterior</small>
+        </div>
+        <div class="col-md-3 card-custom card-prediccion">
+          Reducción CO₂<br><strong>3,450 ton</strong>
+          <small class="d-block mt-1">Equiv. 750 autos</small>
+        </div>
+      </div>
+
+      <!-- Pestañas para diferentes vistas -->
+      <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab">Resumen</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile-tab-pane" type="button" role="tab">Tendencias</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#contact-tab-pane" type="button" role="tab">Viento</button>
+        </li>
+      </ul>
+      
+      <div class="tab-content" id="myTabContent">
+        <!-- Pestaña Resumen -->
+        <div class="tab-pane fade show active" id="home-tab-pane" role="tabpanel">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card-custom" data-bs-toggle="modal" data-bs-target="#modalGraf1">
+                <iframe src="graficas/generacion_mensual.html"></iframe>
+                <h6 class="mt-2">Generación Mensual por Turbina</h6>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card-custom" data-bs-toggle="modal" data-bs-target="#modalGraf2">
+                <iframe src="graficas/factor_capacidad.html"></iframe>
+                <h6 class="mt-2">Factor de Capacidad Mensual</h6>
+              </div>
+            </div>
+          </div>
+          
+          <div class="row mt-4">
+            <div class="col-md-6">
+              <div class="card-custom" data-bs-toggle="modal" data-bs-target="#modalGraf3">
+                <iframe src="graficas/disponibilidad_turbinas.html"></iframe>
+                <h6 class="mt-2">Disponibilidad de Turbinas</h6>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card-custom" data-bs-toggle="modal" data-bs-target="#modalGraf4">
+                <iframe src="graficas/eficiencia_comparada.html"></iframe>
+                <h6 class="mt-2">Eficiencia Comparada</h6>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Pestaña Tendencias -->
+        <div class="tab-pane fade" id="profile-tab-pane" role="tabpanel">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card-custom" data-bs-toggle="modal" data-bs-target="#modalGraf5">
+                <iframe src="graficas/tendencia_anual.html"></iframe>
+                <h6 class="mt-2">Tendencia Anual de Generación</h6>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card-custom" data-bs-toggle="modal" data-bs-target="#modalGraf6">
+                <iframe src="graficas/comparacion_turbinas.html"></iframe>
+                <h6 class="mt-2">Comparación entre Turbinas</h6>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Pestaña Viento -->
+        <div class="tab-pane fade" id="contact-tab-pane" role="tabpanel">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card-custom" data-bs-toggle="modal" data-bs-target="#modalGraf7">
+                <iframe src="graficas/rosa_vientos.html"></iframe>
+                <h6 class="mt-2">Rosa de los Vientos</h6>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card-custom" data-bs-toggle="modal" data-bs-target="#modalGraf8">
+                <iframe src="graficas/curva_potencia.html"></iframe>
+                <h6 class="mt-2">Curva de Potencia</h6>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    &copy; 2025 - Análisis de Energía Eólica - Ciencia de Datos
+    <small>Nota: estos resultados están basados en modelos predictivos y pueden variar de la realidad.</small>
+  </footer>
+
+  <!-- MODALES -->
+  <div class="modal fade" id="modalGraf1" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color2); color: var(--blanco);">
+          <h5 class="modal-title">Generación Mensual por Turbina</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Comparación de la energía generada por cada turbina a lo largo de los meses.</p>
+          <iframe src="graficas/generacion_mensual_eolica.html" width="100%" height="600" style="border:none;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalGraf2" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color2); color: var(--blanco);">
+          <h5 class="modal-title">Factor de Capacidad Mensual</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Eficiencia operativa del parque eólico medida como relación entre energía real generada y máxima teórica.</p>
+          <iframe src="graficas/factor_capacidad.html" width="100%" height="600" style="border:none;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalGraf3" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color2); color: var(--blanco);">
+          <h5 class="modal-title">Disponibilidad de Turbinas</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Tiempo de operación vs paradas por mantenimiento o fallos técnicos.</p>
+          <iframe src="graficas/disponibilidad_turbinas.html" width="100%" height="600" style="border:none;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalGraf4" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color2); color: var(--blanco);">
+          <h5 class="modal-title">Eficiencia Comparada</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Comparación del rendimiento entre diferentes turbinas bajo condiciones similares.</p>
+          <img src="graficas/eficiencia_turbinas.png" width="100%" height="600" style="border:none;"></img>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalGraf5" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color2); color: var(--blanco);">
+          <h5 class="modal-title">Tendencia Anual de Generación</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Evolución anual de la generación eólica y comparación con años anteriores.</p>
+          <iframe src="graficas/tendencia_anual_eolica.html" width="100%" height="600" style="border:none;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalGraf6" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color2); color: var(--blanco);">
+          <h5 class="modal-title">Comparación entre Turbinas</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Rendimiento comparativo de las diferentes turbinas del parque eólico.</p>
+          <iframe src="graficas/comparacion_turbinas.html" width="100%" height="600" style="border:none;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalGraf7" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color2); color: var(--blanco);">
+          <h5 class="modal-title">Rosa de los Vientos</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Distribución de frecuencia y dirección del viento en el emplazamiento.</p>
+          <iframe src="graficas/rosa_vientos.html" width="100%" height="600" style="border:none;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalGraf8" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color2); color: var(--blanco);">
+          <h5 class="modal-title">Curva de Potencia</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>Relación entre velocidad del viento y potencia generada por las turbinas.</p>
+          <iframe src="graficas/curva_potencia.html" width="100%" height="600" style="border:none;"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalMetodologia" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color2); color: var(--blanco);">
+          <h5 class="modal-title">Metodología y Ciencia de Datos</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <h6>Técnicas Utilizadas</h6>
+          <table class="table table-striped">
+            <thead>
+              <tr><th>Técnica</th><th>Descripción</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Limpieza de datos</td><td>Procesamiento de datos SCADA de turbinas</td></tr>
+              <tr><td>Análisis de series temporales</td><td>Identificación de patrones de generación</td></tr>
+              <tr><td>Modelado estadístico</td><td>Análisis de correlación viento-generación</td></tr>
+              <tr><td>Machine Learning</td><td>Predicción de generación basada en meteorología</td></tr>
+            </tbody>
+          </table>
+          <h6 class="mt-4">Flujo de Datos</h6>
+          <p>
+            Este proyecto analiza datos de generación eólica mediante:
+            <ol>
+              <li>Recolección de datos SCADA de las turbinas</li>
+              <li>Integración con datos meteorológicos</li>
+              <li>Procesamiento y limpieza de los datos</li>
+              <li>Análisis de eficiencia y disponibilidad</li>
+              <li>Modelado predictivo de generación</li>
+              <li>Visualización de resultados para optimización</li>
+            </ol>
+            Los modelos consideran variables como velocidad del viento, dirección, temperatura y humedad.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalConclusiones" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header" style="background-color: var(--color2); color: var(--blanco);">
+          <h5 class="modal-title">Conclusiones</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p>
+            Estos resultados permiten analizar el comportamiento del parque eólico y optimizar su operación.
+            Los modelos predictivos están basados en datos históricos y condiciones meteorológicas esperadas.
+          </p>
+          <p>
+            <strong>Conclusiones clave:</strong>
+          </p>
+          <ul>
+            <li>La generación eólica es mayor en meses de invierno (patrón estacional)</li>
+            <li>La turbina 2 muestra un 8% mayor eficiencia que las demás</li>
+            <li>El factor de capacidad promedio es del 34% (superior a la media regional)</li>
+            <li>Los vientos predominantes son del NE con velocidades promedio de 7.5 m/s</li>
+            <li>Se detectaron 142 horas de parada no programada en el último año</li>
+          </ul>
+          <div class="alert alert-info mt-3">
+            <strong>Nota:</strong> Estos resultados pueden variar según condiciones meteorológicas reales.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -106,5 +106,3 @@ Ajustar paleta de colores
 
 Modificar títulos y etiquetas
 
-## 📄 Licencia
-MIT License - Ver LICENSE para más detalles

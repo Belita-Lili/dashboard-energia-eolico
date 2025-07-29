@@ -1,5 +1,6 @@
 # analisis-energia-eolico
-<img width="1599" height="762" alt="image" src="https://github.com/user-attachments/assets/beb872c0-3ae5-4e1f-86d5-3d8d938cb931" />
+<img width="1599" height="753" alt="image" src="https://github.com/user-attachments/assets/85fab4da-e586-4cad-924f-a851b410f976" />
+
 
 ## 📌 Descripción
 Dashboard interactivo para análisis de performance de parques eólicos que incluye:
